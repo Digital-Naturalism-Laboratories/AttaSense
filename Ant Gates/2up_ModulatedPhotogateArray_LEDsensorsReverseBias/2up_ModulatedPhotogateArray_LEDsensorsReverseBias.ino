@@ -10,19 +10,20 @@
 
 
 int sensorPins[] = {A0, A1, A2, A3, A4};
-#define totalSensors 2 // this number needs to match the number of entries above
+#define totalSensors 1 // this number needs to match the number of entries above
 
 int readingHIGH[totalSensors];
 int readingLOW[totalSensors]; //Just measuring ambient light
 int diffReading[totalSensors];
 int avgReading[totalSensors];
 
-int thedelay =8;
+int thedelay =1;
+int microdelay=1;
 
 int thresholds[] = {10, 10, 10, 10, 10}; //Need same number of thresholds as pins! can tweak individual thresholds
-int detected[] = { -1, -1, -1, -1, -1}; //Need same number of thresholds as pins!
+//int [] = { -1, -1, -1, -1, -1}; //Need same number of thresholds as pins!
 
-MovingAverage average[totalSensors](10);
+MovingAverage average[totalSensors](1);
 
 int LEDPins[] = {12, 11, 10, 9, 8};
 #define totalLEDs 1 // this number needs to match the number of entries above
@@ -50,7 +51,7 @@ void setup() {
 
 void loop() {
 
-
+/*
   //First turn all the LEDs OFF
   for (int i = 0; i < totalLEDs; i++) {
     digitalWrite(LEDPins[i], LOW);   // turn the LED on (HIGH is the voltage level)
@@ -89,35 +90,88 @@ void loop() {
     String title = "Sensor";
     String valueSplitter = ",";
     //Print out all the values
-   //Serial.print(title+i+":"+readingHIGH[i]+valueSplitter);
+   Serial.print(title+i+":"+readingHIGH[i]+valueSplitter);
 
     //Serial.print(title+i+":"+diffReading[i]+valueSplitter);
 
     //Display the average reading
     average[i].update(diffReading[i]);
-   // Serial.print(title + i + ":"+ average[i].get() + valueSplitter);
+    //Serial.print(title + i + ":"+ average[i].get() + valueSplitter);
 
 
     //Show the difference between the average, and the instantaneous new reading
     float instant = abs(average[i].get() - diffReading[i]);
-    Serial.print(title + i + ":"+ instant + valueSplitter);
+   // Serial.print(title + i + ":"+ instant + valueSplitter);
 
   }
 
-
   Serial.println( );
-
+*/
+digitalWrite(12,HIGH);
 //Turn the sensor into an output
-/*
+pinMode(6,OUTPUT);
+digitalWrite(6,HIGH);
+
   pinMode(A0, OUTPUT);
-      digitalWrite(A0, HIGH);   // turn the LED on (HIGH is the voltage level)
-      delay (thedelay);
-       
-      digitalWrite(A0, LOW);   // turn the LED on (HIGH is the voltage level)
-      delay (thedelay);
+digitalWrite(A0, LOW);   // turn the LED on (HIGH is the voltage level)
+      //delay (1);
+            delayMicroseconds(microdelay);
+
+digitalWrite(6,LOW); //Reverse the bias and charge
+digitalWrite(A0, HIGH);   // turn the LED on (HIGH is the voltage level)
+
+     // delay (1); 
+      delayMicroseconds(microdelay);
+
+//Set A0 back to input and measure time to drain
+ double startT= micros();
  pinMode(A0, INPUT);
- */
-  
+     // digitalWrite(A0, LOW);   // turn the LED on (HIGH is the voltage level)
+      
+while(analogRead(A0)>30){
+      //  if(10000<micros()-startT)break;
+     // int reading= analogRead(A0);
+   //      Serial.println(reading);
+
+}
+double totalTimeT=micros()-startT;
+Serial.print(totalTimeT);
+Serial.print(",");
+
+//!!!!!!!!!!!!!!!!!!!!!!
+//Try second sensor
+//Turn the sensor into an output
+pinMode(3,OUTPUT);
+digitalWrite(3,HIGH);
+
+  pinMode(A5, OUTPUT);
+digitalWrite(A5, LOW);   // turn the LED on (HIGH is the voltage level)
+      //delay (1);
+      delayMicroseconds(microdelay);
+      
+digitalWrite(3,LOW); //Reverse the bias and charge
+digitalWrite(A5, HIGH);   // turn the LED on (HIGH is the voltage level)
+
+    //  delay (1); 
+      delayMicroseconds(microdelay);
+
+//Set A0 back to input and measure time to drain
+ startT= micros();
+ pinMode(A5, INPUT);
+     // digitalWrite(A0, LOW);   // turn the LED on (HIGH is the voltage level)
+      
+while(analogRead(A5)>30){
+      //  if(10000<micros()-startT)break;
+     // int reading= analogRead(A0);
+   //      Serial.println(reading);
+
+}
+ totalTimeT=micros()-startT;
+
+Serial.println(totalTimeT);
+
+     // delay (thedelay);
+             delayMicroseconds(1);
 
 }
 
