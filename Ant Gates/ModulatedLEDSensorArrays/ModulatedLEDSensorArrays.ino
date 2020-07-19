@@ -28,10 +28,13 @@ int detected[totalSensors];
 int thedelay = 1;
 int microdelay = 1;
 
-int thresholds[] = {10, 10, 10, 10, 10}; //Need same number of thresholds as pins! can tweak individual thresholds
+int thresholds[] = {20, 20, 20, 20, 20}; //Need same number of thresholds as pins! can tweak individual thresholds
 //int [] = { -1, -1, -1, -1, -1}; //Need same number of thresholds as pins!
 
 MovingAverage average[totalSensors](100);
+
+//Optional Piezo option
+int piezoHiLo[]={A2,A5};
 
 void setup() {
   Serial.begin(57600);
@@ -39,6 +42,7 @@ void setup() {
   for (int i = 0; i < totalSensors; i++) {
     pinMode(sensorPins[i], INPUT);
   }
+
 
   //initialize outputs (delays and turn ons for debugging check
   for (int i = 0; i < totalLEDs; i++) {
@@ -48,6 +52,14 @@ void setup() {
     digitalWrite(LEDPins[i], LOW);    // turn the LED off by making the voltage LOW
     delay(20);
   }
+
+  pinMode(piezoHiLo[0],OUTPUT);
+
+  pinMode(piezoHiLo[1],OUTPUT);
+  digitalWrite(piezoHiLo[0],HIGH);
+  delay(200);
+  digitalWrite(piezoHiLo[0],LOW);
+
 
 }
 
@@ -80,12 +92,7 @@ void loop() {
 
     //Do some calculations
     diffReading[i] = readingHIGH[i] - readingLOW[i];
-    if (diffReading[i] < thresholds[i]) {
-      detected[i] = 1; // We detected something in front of the gate! something is blocking the light!
-    }
-    else {
-      detected[i] = 0; // nope the light value is normal
-    }
+
 
     String title = "Sensor";
     String valueSplitter = ",";
@@ -107,7 +114,20 @@ void loop() {
      Serial.print(instant);
      Serial.print(valueSplitter);
 
+
+    if (instant > thresholds[i]) {
+      detected[i] = 1; // We detected something in front of the gate! something is blocking the light!
+       digitalWrite(piezoHiLo[0],HIGH);
+
+    }
+    else {
+      detected[i] = 0; // nope the light value is normal
+  digitalWrite(piezoHiLo[0],LOW);
+    }
   }
+
+
+
 
   Serial.println( );
 
