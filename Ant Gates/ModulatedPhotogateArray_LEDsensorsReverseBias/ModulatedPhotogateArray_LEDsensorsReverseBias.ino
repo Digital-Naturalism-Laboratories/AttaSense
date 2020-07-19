@@ -119,20 +119,24 @@ digitalWrite(6,LOW); //Reverse the bias and charge
 digitalWrite(A0, HIGH);   // turn the LED on (HIGH is the voltage level)
 
       delay (1); 
-
+int firstR=analogRead(A0);
 //Set A0 back to input and measure time to drain
  double startT= micros();
  pinMode(A0, INPUT);
      // digitalWrite(A0, LOW);   // turn the LED on (HIGH is the voltage level)
-      
+
+     
 while(analogRead(A0)>30){
       //  if(10000<micros()-startT)break;
      // int reading= analogRead(A0);
    //      Serial.println(reading);
 
 }
+
 double totalTimeT=micros()-startT;
 Serial.println(totalTimeT);
+
+
       delay (thedelay);
        
 
