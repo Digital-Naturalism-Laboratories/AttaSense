@@ -8,7 +8,7 @@
 */
 
 //Create the Prototype of the function with handy defaults
-long senseLED(int readpin, int chargepin, boolean measureChargeDifference = true, int TimedropVoltagethreshold = 30, int senseDelay = 1, int chargeDiffTime = 4);
+long senseLED(int readpin, int chargepin, boolean measureChargeDifference = false, int TimedropVoltagethreshold = 30, int senseDelay = 10, int chargeDiffTime = 9);
 
 int sensorPins[] = {A0, A1, A2, A3, A4, A5}; // a standard Arduino Uno has 6 analog inputs, change these pins for whatever Analog inputs your microcontroller has
 int chargePins[] = {12, 11, 10, 9, 8, 7};    //Pairs are made by the order they are listed. For instance A0 and 12 are a pair for one LED,
@@ -34,8 +34,8 @@ int detectionThresholds[] = {20, 20, 20, 20, 20, 20}; //Need same number of dete
 int detected[totalSensors];                           // if the reading passes the detection threshold
 
 //Delays for recharging sensors
-long rechargeDelay = 1;
-long microRechargeDelay = 100;
+int rechargeDelay = 1;
+int microRechargeDelay = 100;
 
 //Optional Piezo option
 int piezoHiLo[] = {5, 2}; // First entry is the POSITIVE pin, second entry is our Pseudo ground pin)
@@ -150,10 +150,10 @@ void loop()
     //Print out all the values
 
     //View the raw numReadings of the last sample it took
-    //Serial.print(title + i + ":" + readingHIGH[i] + valueSplitter);
+    Serial.print(title + i + ":" + readingHIGH[i] + valueSplitter);
 
     //get total difference reading
-    Serial.print(title + i + ":" + totaldiffReading[i] + valueSplitter);
+    //Serial.print(title + i + ":" + totaldiffReading[i] + valueSplitter);
 
     //Display the average reading
     //Serial.print(title + i + ":"+ average[i].get() + valueSplitter);
@@ -192,13 +192,15 @@ void loop()
 */
 long senseLED(int readpin, int chargepin, boolean measureChargeDifference, int TimedropVoltagethreshold, int senseDelay, int chargeDiffTime)
 {
-  //Discharge the LED (turn LED ON)
+
+  // turn the LED on (HIGH is the voltage level)
   pinMode(chargepin, OUTPUT);
   digitalWrite(chargepin, HIGH);
   //Turn the sensor into an output
   pinMode(readpin, OUTPUT);
   digitalWrite(readpin, LOW);
 
+  delayMicroseconds(senseDelay);
 
   //Reverse the bias and charge
   digitalWrite(chargepin, LOW);
@@ -206,8 +208,30 @@ long senseLED(int readpin, int chargepin, boolean measureChargeDifference, int T
 
   delayMicroseconds(senseDelay);
 
-  if (measureChargeDifference == true) {
-    // Use the method where we measure the drop of the voltage across a specified time.
+  if (measureChargeDifference == false)
+  {
+    //Set readpin back to input and measure time to drain
+    int val = 10000;
+    int startT = micros();
+    pinMode(readpin, INPUT);
+ 
+    while (val > TimedropVoltagethreshold )
+    {
+      val = analogRead(readpin);
+      if (10000000.0 < micros() - startT) {
+        val = 0;
+      }
+      // int reading= analogRead(readpin);
+      //      Serial.println(reading);
+    }
+    long totalTimeT = micros() - startT;
+
+    delayMicroseconds(senseDelay);
+
+    return totalTimeT;
+  }
+  else
+  { // Use the method where we measure the drop of the voltage across a specified time.
     int firstR = analogRead(readpin);
     //Set readpin back to input and measure time to drain
     double startT = micros();
@@ -219,24 +243,16 @@ long senseLED(int readpin, int chargepin, boolean measureChargeDifference, int T
     long discharge = firstR - secR;
     return discharge;
   }
-  else  { //measure the TIME it takes the led to discharge
-    int val = 10000;
-    unsigned long timeout = 299000; //maxMicroseconds to wait until going to next reading //everything needs to be LONG's because we are using micros and millis
+}
 
-    //Set readpin back to input and measure time to drain
-    unsigned long startT = micros();
-    pinMode(readpin, INPUT);
-
-    while (val > TimedropVoltagethreshold ) //keep measuring until the voltage drops WAYY down
-    {
-      val = analogRead(readpin);
-      if (micros() - startT > timeout ) {
-        val = 0;
-      }
-      // Serial.println(val);
-    }
-    unsigned long totalTimeT = micros() - startT;
-    return totalTimeT;
+//Old method, you basically just plug it into an Analog Port and sense the voltage change
+int readLEDBasic(int numReadings, int port)
+{ // Read analog value n times and avarage over those n times
+  long total = 0;
+  for (int x = 0; x < numReadings; x++)
+  {
+    total += analogRead(port);
+    //delay(5);
   }
-
+  return total / numReadings;
 }

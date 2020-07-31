@@ -8,7 +8,7 @@
 */
 
 //Create the Prototype of the function with handy defaults
-long senseLED(int readpin, int chargepin, boolean measureChargeDifference = true, int TimedropVoltagethreshold = 30, int senseDelay = 1, int chargeDiffTime = 4);
+int senseLED(int readpin, int chargepin, boolean measureChargeDifference = true, int timedropthreshold = 30, int senseDelay = 1, int chargeDiffTime = 9);
 
 int sensorPins[] = {A0, A1, A2, A3, A4, A5}; // a standard Arduino Uno has 6 analog inputs, change these pins for whatever Analog inputs your microcontroller has
 int chargePins[] = {12, 11, 10, 9, 8, 7};    //Pairs are made by the order they are listed. For instance A0 and 12 are a pair for one LED,
@@ -34,8 +34,8 @@ int detectionThresholds[] = {20, 20, 20, 20, 20, 20}; //Need same number of dete
 int detected[totalSensors];                           // if the reading passes the detection threshold
 
 //Delays for recharging sensors
-long rechargeDelay = 1;
-long microRechargeDelay = 100;
+int rechargeDelay = 10;
+int microRechargeDelay = 1;
 
 //Optional Piezo option
 int piezoHiLo[] = {5, 2}; // First entry is the POSITIVE pin, second entry is our Pseudo ground pin)
@@ -45,32 +45,19 @@ void setup()
   Serial.begin(57600);
 
   //Initialize all LED sensors, flash through them for debugging
-  int startupFlashSpeed = 100;
   for (int i = 0; i < totalSensors; i++)
   {
     pinMode(sensorPins[i], OUTPUT);
     digitalWrite(sensorPins[i], LOW);
-  }
-  for (int i = 0; i < totalSensors; i++)
-  {
-    pinMode(chargePins[i], OUTPUT);
-    digitalWrite(chargePins[i], HIGH);
-    delay(startupFlashSpeed);
   }
 
   for (int i = 0; i < totalSensors; i++)
   {
-    pinMode(sensorPins[i], OUTPUT);
-    digitalWrite(sensorPins[i], LOW);
-  }
-  for (int i = 0; i < totalSensors; i++)
-  {
     pinMode(chargePins[i], OUTPUT);
     digitalWrite(chargePins[i], HIGH);
-    delay(startupFlashSpeed);
+    delay(250);
     digitalWrite(chargePins[i], LOW);
   }
-
 
   //Initialize the pins for the Piezo output
   pinMode(piezoHiLo[0], OUTPUT);
@@ -84,19 +71,7 @@ void setup()
 void loop()
 {
   //First turn all the LEDs OFF
-  //and measure all their values (with ambient light)
-  for (int i = 0; i < totalSensors; i++)
-  {
-    pinMode(sensorPins[i], OUTPUT);
-    digitalWrite(sensorPins[i], LOW);
-    pinMode(chargePins[i], OUTPUT);
-    digitalWrite(chargePins[i], LOW);
-  }
-
-  delay(rechargeDelay); //you often need some delay to let the sensors charge and discharge
-  //delayMicroseconds(1000);
-
-  //sense the ambient light
+  //measure all their values (with ambient light)
   for (int o = 0; o < totalSensors; o++)
   {
     readingLOW[o] = senseLED(sensorPins[o], chargePins[o]);
@@ -104,40 +79,45 @@ void loop()
     totaldiffReading[o] = 0;
   }
 
+  delay(rechargeDelay); //you often need some delay to let the sensors charge and discharge
+  //delayMicroseconds(1000);
 
-
-  //Next
-  // turn on all other  LEDs
-  //and choose one LED to sense
-  //
+  //Next Turn one LED on permanently
+  //And sense every other Led's impression of that one
   for (int z = 0; z < totalSensors; z++)
   {
-    //Go through all the other sensors and sense their impression of the current ON LED
-    for (int i = 0; i < totalSensors; i++)
-    {
-
-      // turn ALL leds on
-      pinMode(chargePins[i], OUTPUT);
-      digitalWrite(chargePins[i], HIGH);
-      //Turn the sensor into an output
-      pinMode(sensorPins[i], OUTPUT);
-      digitalWrite(sensorPins[i], LOW);
-    }
+    // turn the chosen LED on
+    pinMode(chargePins[z], OUTPUT);
+    digitalWrite(chargePins[z], HIGH);
+    //Turn the sensor into an output
+    pinMode(sensorPins[z], OUTPUT);
+    digitalWrite(sensorPins[z], LOW);
 
     delay(rechargeDelay);
 
-    //Check the latest readings on every sensor that is not the on light
-    readingHIGH[z] = senseLED(sensorPins[z], chargePins[z]);
-    //Add the latest difference to the total difference reading
-    //use absolute value because we don't care if it makes it higher or lower, just that it is different from what it used to be
-    totaldiffReading[z] = totaldiffReading[z] + abs(readingHIGH[z] - readingLOW[z]);
-
-
+    //Go through all the other sensors and sense their impression of the current ON LED
+    for (int i = 0; i < totalSensors; i++)
+    {
+      if (z = i)
+      {
+        //This line is not necessary, just for educational point.
+        readingHIGH[i] = readingHIGH[i]; //Skip this sensor loop if this led is the ON led, just use the old value
+        totaldiffReading[i] = totaldiffReading[i] + abs(readingHIGH[i] - readingLOW[i]);
+      }
+      else
+      {
+        //Check the latest readings on every sensor that is not the on light
+        readingHIGH[i] = senseLED(sensorPins[i], chargePins[i]);
+        //Add the latest difference to the total difference reading
+        //use absolute value because we don't care if it makes it higher or lower, just that it is different from what it used to be
+        totaldiffReading[i] = totaldiffReading[i] + abs(readingHIGH[i] - readingLOW[i]);
+      }
+    }
   }
 
-  /*Calculations and Display
-    //Now go back through all the LED calculations and display them after calculating
-  */
+/*Calculations and Display
+  //Now go back through all the LED calculations and display them after calculating
+*/
   for (int i = 0; i < totalSensors; i++)
   {
     //update the average reading for each sensor
@@ -146,24 +126,23 @@ void loop()
     //Display all the calculations
     String title = "Sensor";
     String valueSplitter = ",";
-
+  
     //Print out all the values
 
     //View the raw numReadings of the last sample it took
     //Serial.print(title + i + ":" + readingHIGH[i] + valueSplitter);
 
     //get total difference reading
-    Serial.print(title + i + ":" + totaldiffReading[i] + valueSplitter);
+    //Serial.print(title + i + ":" + totaldiffReading[i] + valueSplitter);
 
     //Display the average reading
     //Serial.print(title + i + ":"+ average[i].get() + valueSplitter);
 
     //Show the difference between the average, and the instantaneous new reading
     double instant = average[i].get() - totaldiffReading[i];
-    // Serial.print(title + i + ":");    Serial.print(instant);    Serial.print(valueSplitter);
-
-
-
+    Serial.print(title + i + ":");
+    Serial.print(instant);
+    Serial.print(valueSplitter);
 
     if (instant > detectionThresholds[i])
     {
@@ -190,15 +169,17 @@ void loop()
 
   Connect the readpin to an analog input pin, and the charge pin to whatever pin.
 */
-long senseLED(int readpin, int chargepin, boolean measureChargeDifference, int TimedropVoltagethreshold, int senseDelay, int chargeDiffTime)
+int senseLED(int readpin, int chargepin, boolean measureChargeDifference, int timedropthreshold, int senseDelay, int chargeDiffTime)
 {
-  //Discharge the LED (turn LED ON)
+
+  // turn the LED on (HIGH is the voltage level)
   pinMode(chargepin, OUTPUT);
   digitalWrite(chargepin, HIGH);
   //Turn the sensor into an output
   pinMode(readpin, OUTPUT);
   digitalWrite(readpin, LOW);
 
+  delayMicroseconds(senseDelay);
 
   //Reverse the bias and charge
   digitalWrite(chargepin, LOW);
@@ -206,8 +187,26 @@ long senseLED(int readpin, int chargepin, boolean measureChargeDifference, int T
 
   delayMicroseconds(senseDelay);
 
-  if (measureChargeDifference == true) {
-    // Use the method where we measure the drop of the voltage across a specified time.
+  if (measureChargeDifference == false)
+  {
+    //Set readpin back to input and measure time to drain
+    int startT = micros();
+    pinMode(readpin, INPUT);
+
+    while (analogRead(readpin) > timedropthreshold || micros() - startT > 100)
+    {
+      // if(10000<micros()-startT)break;
+      // int reading= analogRead(readpin);
+      //      Serial.println(reading);
+    }
+    int totalTimeT = micros() - startT;
+
+    delayMicroseconds(senseDelay);
+
+    return totalTimeT;
+  }
+  else
+  { // Use the method where we measure the drop of the voltage across a specified time.
     int firstR = analogRead(readpin);
     //Set readpin back to input and measure time to drain
     double startT = micros();
@@ -216,27 +215,19 @@ long senseLED(int readpin, int chargepin, boolean measureChargeDifference, int T
     delay(chargeDiffTime); // delay for a standard amount each sample
 
     int secR = analogRead(readpin);
-    long discharge = firstR - secR;
+    int discharge = firstR - secR;
     return discharge;
   }
-  else  { //measure the TIME it takes the led to discharge
-    int val = 10000;
-    unsigned long timeout = 299000; //maxMicroseconds to wait until going to next reading //everything needs to be LONG's because we are using micros and millis
+}
 
-    //Set readpin back to input and measure time to drain
-    unsigned long startT = micros();
-    pinMode(readpin, INPUT);
-
-    while (val > TimedropVoltagethreshold ) //keep measuring until the voltage drops WAYY down
-    {
-      val = analogRead(readpin);
-      if (micros() - startT > timeout ) {
-        val = 0;
-      }
-      // Serial.println(val);
-    }
-    unsigned long totalTimeT = micros() - startT;
-    return totalTimeT;
+//Old method, you basically just plug it into an Analog Port and sense the voltage change
+int readLEDBasic(int numReadings, int port)
+{ // Read analog value n times and avarage over those n times
+  int total = 0;
+  for (int x = 0; x < numReadings; x++)
+  {
+    total += analogRead(port);
+    //delay(5);
   }
-
+  return total / numReadings;
 }
