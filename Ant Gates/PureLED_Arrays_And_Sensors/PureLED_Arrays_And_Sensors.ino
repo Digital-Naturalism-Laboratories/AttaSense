@@ -8,7 +8,7 @@
 */
 
 //Create the Prototype of the function with handy defaults
-long senseLED(int readpin, int chargepin, boolean measureChargeDifference = true, int TimedropVoltagethreshold = 30, int senseDelay = 1, int chargeDiffTime = 4);
+long senseLED(int readpin, int chargepin, boolean measureChargeDifference = true, int TimedropVoltagethreshold = 30, int senseDelay = 1, int chargeDiffTime = 2000); //ChargeDiffTime determins sensitivity 9ms is slow but very sensitive 1ms is fast and about the limit
 
 int sensorPins[] = {A0, A1, A2, A3, A4, A5}; // a standard Arduino Uno has 6 analog inputs, change these pins for whatever Analog inputs your microcontroller has
 int chargePins[] = {12, 11, 10, 9, 8, 7};    //Pairs are made by the order they are listed. For instance A0 and 12 are a pair for one LED,
@@ -35,7 +35,6 @@ int detected[totalSensors];                           // if the reading passes t
 
 //Delays for recharging sensors
 long rechargeDelay = 1;
-long microRechargeDelay = 100;
 
 //Optional Piezo option
 int piezoHiLo[] = {5, 2}; // First entry is the POSITIVE pin, second entry is our Pseudo ground pin)
@@ -83,8 +82,12 @@ void setup()
 
 void loop()
 {
+ 
+  //AMBIENT LIGHT READING
   //First turn all the LEDs OFF
   //and measure all their values (with ambient light)
+
+ 
   for (int i = 0; i < totalSensors; i++)
   {
     pinMode(sensorPins[i], OUTPUT);
@@ -93,8 +96,8 @@ void loop()
     digitalWrite(chargePins[i], LOW);
   }
 
-  delay(rechargeDelay); //you often need some delay to let the sensors charge and discharge
-  //delayMicroseconds(1000);
+  //delay(rechargeDelay); //you often need some delay to let the sensors charge and discharge
+  delayMicroseconds(rechargeDelay);
 
   //sense the ambient light
   for (int o = 0; o < totalSensors; o++)
@@ -105,7 +108,7 @@ void loop()
   }
 
 
-
+//READ FULL BRIGHTNESS OF LEDS (Max Reading)
   //Next
   // turn on all other  LEDs
   //and choose one LED to sense
@@ -124,15 +127,14 @@ void loop()
       digitalWrite(sensorPins[i], LOW);
     }
 
-    delay(rechargeDelay);
+   // delay(rechargeDelay);
+  delayMicroseconds(rechargeDelay);
 
     //Check the latest readings on every sensor that is not the on light
     readingHIGH[z] = senseLED(sensorPins[z], chargePins[z]);
     //Add the latest difference to the total difference reading
     //use absolute value because we don't care if it makes it higher or lower, just that it is different from what it used to be
     totaldiffReading[z] = totaldiffReading[z] + abs(readingHIGH[z] - readingLOW[z]);
-
-
   }
 
   /*Calculations and Display
@@ -153,14 +155,14 @@ void loop()
     //Serial.print(title + i + ":" + readingHIGH[i] + valueSplitter);
 
     //get total difference reading
-    Serial.print(title + i + ":" + totaldiffReading[i] + valueSplitter);
+    //Serial.print(title + i + ":" + totaldiffReading[i] + valueSplitter);
 
     //Display the average reading
     //Serial.print(title + i + ":"+ average[i].get() + valueSplitter);
 
     //Show the difference between the average, and the instantaneous new reading
     double instant = average[i].get() - totaldiffReading[i];
-    // Serial.print(title + i + ":");    Serial.print(instant);    Serial.print(valueSplitter);
+     Serial.print(title + i + ":");    Serial.print(instant);    Serial.print(valueSplitter);
 
 
 
@@ -204,7 +206,8 @@ long senseLED(int readpin, int chargepin, boolean measureChargeDifference, int T
   digitalWrite(chargepin, LOW);
   digitalWrite(readpin, HIGH);
 
-  delayMicroseconds(senseDelay);
+//Let charge? //Seem to get about equal performance whether this delay is there or not
+  //delayMicroseconds(senseDelay);
 
   if (measureChargeDifference == true) {
     // Use the method where we measure the drop of the voltage across a specified time.
@@ -213,7 +216,7 @@ long senseLED(int readpin, int chargepin, boolean measureChargeDifference, int T
     double startT = micros();
     pinMode(readpin, INPUT);
 
-    delay(chargeDiffTime); // delay for a standard amount each sample
+    delayMicroseconds(chargeDiffTime); // delay for a standard amount each sample
 
     int secR = analogRead(readpin);
     long discharge = firstR - secR;
