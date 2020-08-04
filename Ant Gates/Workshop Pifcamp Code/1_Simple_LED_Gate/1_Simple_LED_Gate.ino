@@ -14,7 +14,7 @@ long pin A3
 */
 
 //Create the Prototype of the function with handy defaults
-long senseLED(int readpin, int chargepin, boolean measureChargeDifference = true, int TimedropVoltagethreshold = 30, int senseDelay = 1, int chargeDiffTime = 2000); //ChargeDiffTime determins sensitivity 9ms is slow but very sensitive 1ms is fast and about the limit
+long senseLED(int readpin, int chargepin, boolean measureChargeDifference = true, int TimedropVoltagethreshold = 30, int senseDelay = 1, long chargeDiffTime = 2000); //ChargeDiffTime determins sensitivity 9ms is slow but very sensitive 1ms is fast and about the limit
 
 int sensorPins[] = {A0, A5}; // a standard Arduino Uno has 6 analog inputs, change these pins for whatever Analog inputs your microcontroller has
 int chargePins[] = {A2, A3};    //Pairs are made by the order they are listed. For instance A0 and 12 are a pair for one LED,
