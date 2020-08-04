@@ -1,4 +1,5 @@
-#include "MovingAverage.h"
+//#include <MovingAverage.h>
+#include "MovingAverage.h" // format for local files
 
 
 /*
