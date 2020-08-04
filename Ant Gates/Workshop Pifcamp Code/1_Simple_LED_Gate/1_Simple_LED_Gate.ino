@@ -1,4 +1,4 @@
-#include <MovingAverage.h>
+//#include <MovingAverage.h>
 
 /*
    SMD LED Array Photo Imaging
@@ -32,9 +32,9 @@ int readingHIGH[totalSensors]; // Reading when the LED has illuminated the scene
 
 int totaldiffReading[totalSensors]; //Total of the measurements between each light position sample and the background light
 
-int avgReading[totalSensors];
+//int avgReading[totalSensors];
 
-MovingAverage average[totalSensors](100);
+//MovingAverage average[totalSensors](100);
 
 int detectionThresholds[] = {20, 20, 20, 20, 20, 20}; //Need same number of detectionThresholds as pins! can tweak individual detectionThresholds
 int detected[totalSensors];                           // if the reading passes the detection threshold
@@ -149,7 +149,7 @@ void loop()
   for (int i = 0; i < totalSensors; i++)
   {
     //update the average reading for each sensor
-    average[i].update(totaldiffReading[i]);
+   //average[i].update(totaldiffReading[i]);
 
     //Display all the calculations
     String title = "Sensor";
@@ -167,7 +167,7 @@ void loop()
     //Serial.print(title + i + ":"+ average[i].get() + valueSplitter);
 
     //Show the difference between the average, and the instantaneous new reading
-    double instant = average[i].get() - totaldiffReading[i];
+    double instant =  totaldiffReading[i];
     // Serial.print(title + i + ":");    Serial.print(instant);    Serial.print(valueSplitter);
 
 
