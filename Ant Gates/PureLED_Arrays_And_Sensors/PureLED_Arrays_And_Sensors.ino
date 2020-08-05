@@ -1,4 +1,4 @@
-#include <MovingAverage.h>
+#include "MovingAverage.h"
 
 /*
    SMD LED Array Photo Imaging
@@ -8,7 +8,7 @@
 */
 
 //Create the Prototype of the function with handy defaults
-long senseLED(int readpin, int chargepin, boolean measureChargeDifference = true, int TimedropVoltagethreshold = 30, int senseDelay = 1, int chargeDiffTime = 2000); //ChargeDiffTime determins sensitivity 9ms is slow but very sensitive 1ms is fast and about the limit
+long senseLED(int readpin, int chargepin, boolean measureChargeDifference = true, int TimedropVoltagethreshold = 30, int senseDelay = 1, int chargeDiffTime = 9000); //ChargeDiffTime determins sensitivity 9ms is slow but very sensitive 1ms is fast and about the limit
 
 int sensorPins[] = {A0, A1, A2, A3, A4, A5}; // a standard Arduino Uno has 6 analog inputs, change these pins for whatever Analog inputs your microcontroller has
 int chargePins[] = {12, 11, 10, 9, 8, 7};    //Pairs are made by the order they are listed. For instance A0 and 12 are a pair for one LED,
@@ -16,7 +16,7 @@ int chargePins[] = {12, 11, 10, 9, 8, 7};    //Pairs are made by the order they 
 //The SENSORPIN side of the LED is the CATHODE or NEGATIVE - side of the LED (Short leg of regular LED, marking side on SMD led)
 //the CHARGEPIN side of an LED is the ANODE or POSITIVE + side of an LED (Long Leg of regular LED)
 
-#define totalSensors 6 // this number needs to match the number of entries above or be less
+#define totalSensors 2 // this number needs to match the number of entries above or be less
 //For a PURE led based sensing system, you need at least 2 sensors minimum
 
 //Arrays to store readings we have captured
@@ -155,7 +155,7 @@ void loop()
     //Serial.print(title + i + ":" + readingHIGH[i] + valueSplitter);
 
     //get total difference reading
-    //Serial.print(title + i + ":" + totaldiffReading[i] + valueSplitter);
+   // Serial.print(title + i + ":" + totaldiffReading[i] + valueSplitter);
 
     //Display the average reading
     //Serial.print(title + i + ":"+ average[i].get() + valueSplitter);

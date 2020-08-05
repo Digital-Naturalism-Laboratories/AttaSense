@@ -18,7 +18,7 @@ int chargePins[] = {12, 11, 10, 9, 8, 7};    //Pairs are made by the order they 
 //The SENSORPIN side of the LED is the CATHODE or NEGATIVE - side of the LED (Short leg of regular LED, marking side on SMD led)
 //the CHARGEPIN side of an LED is the ANODE or POSITIVE + side of an LED (Long Leg of regular LED)
 
-#define totalSensors 6 // this number needs to match the number of entries above or be less
+#define totalSensors 3 // this number needs to match the number of entries above or be less
 //For a PURE led based sensing system, you need at least 2 sensors minimum
 
 //Arrays to store readings we have captured
